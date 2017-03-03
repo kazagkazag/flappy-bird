@@ -2,7 +2,7 @@ WebFont.load({
     google: {
         families: ['Chewy']
     },
-    active: function() {
+    active: function () {
         console.log("We have it!");
         startGame();
     }
@@ -11,7 +11,7 @@ WebFont.load({
 let game;
 
 function startGame() {
-     game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
+    game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
         preload,
         create,
         update
@@ -73,11 +73,10 @@ function create() {
 
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
-
 }
 
 function getRandom(minimum, maximum) {
-    return Math.floor(Math.random() * (maximum - minimum + 1)) + minimum
+    return Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
 }
 
 function createPillar() {
@@ -85,7 +84,7 @@ function createPillar() {
     const pillar = game.add.sprite(800, 0, isBottomPillar ? "pillar2" : "pillar");
     pillar.scale.setTo(0.5, 0.5);
 
-    if(isBottomPillar) {
+    if (isBottomPillar) {
         const posY = getRandom(50, 300);
         console.log("Bottom on position", posY);
         pillar.y = -posY;
@@ -103,7 +102,7 @@ function removeUnusedPillars() {
 }
 
 function removePillarIfUnused(pillar) {
-    if(pillar.body.x < 0) {
+    if (pillar.body.x < 0) {
         pillar.kill();
     }
 }
@@ -113,12 +112,12 @@ function movePillars() {
 }
 
 function movePillar(pillar) {
-    pillar.body.velocity.x =- 150;
+    pillar.body.velocity.x = -150;
 }
 
-function addNewPillars(){
+function addNewPillars() {
     const lastPillar = pillars.getAt(pillars.length - 1);
-    if(pillars.countLiving() < 3 && lastPillar.body.x < 300) {
+    if (pillars.countLiving() < 3 && lastPillar.body.x < 300) {
         createPillar();
     }
 }
@@ -131,8 +130,6 @@ function update() {
 
     scoreText.text = 'Score: ' + parseInt(pillars.countDead());
 
-
-
     //  Reset the players velocity (movement)
     player.body.velocity.x = 0;
 
@@ -143,20 +140,18 @@ function update() {
 
     //  Collide the player with the pillars
     game.physics.arcade.overlap(player, pillars, endGame, null, this);
-    killIfOutsideBounds()
-
+    killIfOutsideBounds();
 }
 
-
 function killIfOutsideBounds() {
-    if(player.body.y > 550 || player.body.y <= 0) {
-        console.log("OUT!")
+    if (player.body.y > 550 || player.body.y <= 0) {
+        console.log("OUT!");
         endGame();
     }
 }
 
 function endGame() {
-    console.log("Collision!")
+    console.log("Collision!");
     scoreText.text = 'Result: ' + score;
     game.destroy();
 }
