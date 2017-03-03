@@ -1,22 +1,34 @@
-const game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
-    preload,
-    create,
-    update
+WebFont.load({
+    google: {
+        families: ['Chewy']
+    },
+    active: function() {
+        console.log("We have it!");
+        startGame();
+    }
 });
+
+let game;
+
+function startGame() {
+     game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
+        preload,
+        create,
+        update
+    });
+}
 
 function preload() {
     game.load.image('sky', 'assets/sky.png');
-    game.load.image('ground', 'assets/platform.png');
-    game.load.image('pillar', 'assets/platform2.png');
-    game.load.image('star', 'assets/star.png');
-    game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
+    game.load.image('pillar', 'assets/pipe.png');
+    game.load.spritesheet('bird', 'assets/bird.png', 48, 49);
 }
 
 let player;
 let pillars;
 let cursors;
 
-let score = 0;
+let score = 1;
 let scoreText;
 
 function create() {
@@ -33,20 +45,10 @@ function create() {
     //  We will enable physics for any object that is created in this group
     pillars.enableBody = true;
 
-    // Here we create the ground.
-    const ground = pillars.create(0, game.world.height - 64, 'ground');
-
-    //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
-    ground.scale.setTo(2, 2);
-
-    //  This stops it from falling away when you jump on it
-    ground.body.immovable = true;
-
-
     createPillar();
 
     // The player and its settings
-    player = game.add.sprite(32, game.world.height - 150, 'dude');
+    player = game.add.sprite(32, game.world.height - 150, 'bird');
 
     //  We need to enable physics on the player
     game.physics.arcade.enable(player);
@@ -57,25 +59,40 @@ function create() {
     player.body.collideWorldBounds = true;
 
     //  Our two animations, walking left and right.
-    player.animations.add('left', [0, 1, 2, 3], 10, true);
-    player.animations.add('right', [5, 6, 7, 8], 10, true);
+    player.animations.add('flying', [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
+    player.animations.play("flying", 10, true);
 
     //  The score
-    scoreText = game.add.text(16, 16, 'score: 0', {fontSize: '32px', fill: '#000'});
+    scoreText = game.add.text(16, 16, 'score: 0', {
+        font: "400 48px Chewy"
+    });
 
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
 
 }
 
-function createPillar() {
-    const isBottomPillar = Math.random() < 0.5;
-    const pillarPosition = isBottomPillar
-        ? Math.floor(Math.random() * 300) + 50
-        : -1 * (Math.floor(Math.random() * 350) + 100);
+function getRandom(minimum, maximum) {
+    return Math.floor(Math.random() * (maximum - minimum + 1)) + minimum
+}
 
-    const pillar = pillars.create(800, pillarPosition, 'pillar');
-    pillar.body.immovable = true;
+function createPillar() {
+    const isBottomPillar = pillars.length % 2 === 0;
+    const pillar = game.add.sprite(800, 0, "pillar");
+    pillar.scale.setTo(0.5, 0.5);
+
+    if(isBottomPillar) {
+        const posY = getRandom(250, 500);
+        console.log("Bottom on position", posY);
+        pillar.y = posY;
+    } else {
+        const posY = getRandom(100, 350);
+        console.log("Top on position", posY);
+        pillar.angle = 180;
+        pillar.y = posY;
+    }
+
+    pillars.add(pillar);
 }
 
 function removeUnusedPillars() {
@@ -110,7 +127,7 @@ function update() {
     addNewPillars();
 
     score += 0.1;
-    scoreText.text = 'Score: ' + score;
+    scoreText.text = 'Score: ' + parseInt(score);
 
 
 
@@ -121,27 +138,23 @@ function update() {
         //  Move to the left
         player.body.velocity.y = -200;
     }
-    else {
-        //  Stand still
-        player.animations.stop();
-
-        player.frame = 4;
-    }
 
     //  Collide the player with the pillars
-    game.physics.arcade.overlap(player, pillars, endGame, null, this);
-    killIfOutsideBounds()
+    //game.physics.arcade.overlap(player, pillars, endGame, null, this);
+    //killIfOutsideBounds()
 
 }
 
 
 function killIfOutsideBounds() {
     if(player.body.y > 550 || player.body.y <= 0) {
+        console.log("OUT!")
         endGame();
     }
 }
 
 function endGame() {
+    console.log("Collision!")
     scoreText.text = 'Result: ' + score;
     game.destroy();
 }

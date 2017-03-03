@@ -8,11 +8,13 @@
     "phaser": "^2.6.2"
   },
   "devDependencies": {
+    "babel-cli": "^6.23.0",
     "http-server": "^0.9.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "http-server"
+    "serve": "http-server",
+    "dev": "babel src --watch --out-file public/main.js"
   },
   "author": "",
   "license": "ISC"
