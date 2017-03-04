@@ -23,11 +23,15 @@ function preload() {
     game.load.image('pillar', 'assets/pipe.png');
     game.load.image('pillar2', 'assets/pipe2.png');
     game.load.spritesheet('bird', 'assets/bird.png', 48, 49);
+    game.load.audio('bgMusic', ['assets/bg.mp3']);
+    game.load.audio('upSound', ['assets/up.mp3']);
 }
 
 let player;
 let pillars;
 let cursors;
+let music;
+let upSound;
 
 let score = 1;
 let scoreText;
@@ -74,6 +78,11 @@ function create() {
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
 
+    music = game.add.audio('bgMusic');
+    music.play();
+
+    upSound = game.add.audio('upSound');
+
 }
 
 function getRandom(minimum, maximum) {
@@ -81,17 +90,17 @@ function getRandom(minimum, maximum) {
 }
 
 function createPillar() {
-    const isBottomPillar = pillars.length % 2 === 0;
-    const pillar = game.add.sprite(800, 0, isBottomPillar ? "pillar2" : "pillar");
+    const isTopPillar = pillars.length % 2 === 0;
+    const pillar = game.add.sprite(800, 0, isTopPillar ? "pillar2" : "pillar");
     pillar.scale.setTo(0.5, 0.5);
 
-    if(isBottomPillar) {
+    if(isTopPillar) {
         const posY = getRandom(50, 300);
-        console.log("Bottom on position", posY);
+        console.log("Top on position", posY);
         pillar.y = -posY;
     } else {
-        const posY = getRandom(100, 350);
-        console.log("Top on position", posY);
+        const posY = getRandom(200, 350);
+        console.log("Bottom on position", posY);
         pillar.y = posY;
     }
 
@@ -139,6 +148,9 @@ function update() {
     if (cursors.up.isDown) {
         //  Move to the left
         player.body.velocity.y = -200;
+        if(!upSound.isPlaying) {
+            upSound.play();
+        }
     }
 
     //  Collide the player with the pillars
