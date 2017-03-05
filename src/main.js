@@ -62,6 +62,8 @@ function create() {
     player.body.bounce.y = 0.2;
     player.body.gravity.y = 500;
     player.body.collideWorldBounds = true;
+    player.anchor.x = 0.5;
+    player.anchor.y = 0.5;
 
     //  Our two animations, walking left and right.
     player.animations.add('flying', [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
@@ -122,7 +124,8 @@ function movePillars() {
 }
 
 function movePillar(pillar) {
-    pillar.body.velocity.x =- 150;
+    const moveBy = pillars.length * 12 + 200;
+    pillar.body.velocity.x =- moveBy;
 }
 
 function addNewPillars(){
@@ -145,13 +148,7 @@ function update() {
     //  Reset the players velocity (movement)
     player.body.velocity.x = 0;
 
-    if (cursors.up.isDown) {
-        //  Move to the left
-        player.body.velocity.y = -200;
-        if(!upSound.isPlaying) {
-            upSound.play();
-        }
-    }
+    updatePlayerPosition();
 
     //  Collide the player with the pillars
     game.physics.arcade.overlap(player, pillars, endGame, null, this);
@@ -159,6 +156,50 @@ function update() {
 
 }
 
+let targetAngle = 0;
+
+function updatePlayerPosition() {
+    if (cursors.up.isDown) {
+        jump();
+    }
+
+    reduceTargetAngle();
+    adjustPlayerAngle();
+}
+
+function reduceTargetAngle() {
+    if(targetAngle < 0) {
+        targetAngle ++;
+    }
+}
+
+function jump() {
+    moveUp();
+    increaseTargetAngle();
+    playJumpSound();
+}
+
+function moveUp() {
+    player.body.velocity.y = -200;
+}
+
+function increaseTargetAngle() {
+    if(targetAngle < -60) return;
+    targetAngle -= 5;
+}
+
+function adjustPlayerAngle() {
+    if(player.angle === targetAngle) return;
+
+    const angleStep = (targetAngle - player.angle) / 5;
+    player.angle += angleStep
+}
+
+function playJumpSound() {
+    if(!upSound.isPlaying) {
+        upSound.play();
+    }
+}
 
 function killIfOutsideBounds() {
     if(player.body.y > 550 || player.body.y <= 0) {
@@ -169,6 +210,11 @@ function killIfOutsideBounds() {
 
 function endGame() {
     console.log("Collision!")
+    player.kill();
+    game.add.tween(scoreText).to( {
+        y: 245,
+        x: 300
+    }, 240, Phaser.Easing.Bounce.Out, true);
+
     scoreText.text = 'Result: ' + score;
-    game.destroy();
 }
