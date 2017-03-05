@@ -94,6 +94,9 @@ function preload() {
     game.load.image('sky', 'assets/sky.png');
     game.load.image('pillar', 'assets/pipe.png');
     game.load.image('pillar2', 'assets/pipe2.png');
+    game.load.image('bgClouds', 'assets/layer-1.png');
+    game.load.image('bgTrees', 'assets/layer-2.png');
+    game.load.image('bgGround', 'assets/layer-3.png');
     game.load.spritesheet('bird', 'assets/bird.png', 48, 49);
     game.load.audio('bgMusic', ['assets/bg.mp3']);
     game.load.audio('upSound', ['assets/up.mp3']);
@@ -104,6 +107,7 @@ let pillars;
 let cursors;
 let music;
 let upSound;
+let trees;
 
 let score = 1;
 let scoreText;
@@ -112,9 +116,11 @@ function create() {
 
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
+    game.add.sprite(0, 0, "bgClouds");
 
-    //  A simple background for our game
-    game.add.sprite(0, 0, 'sky');
+    trees = game.add.group();
+
+    createTree();
 
     //  The pillars group contains the ground and the 2 ledges we can jump on
     pillars = game.add.group();
@@ -142,11 +148,14 @@ function create() {
     player.animations.play("flying", 10, true);
 
     //  The score
-    scoreText = game.add.text(16, 16, 'score: 0', {
+    scoreText = game.add.text(game.world.width - 180, 16, 'score: 0', {
         font: "400 48px Chewy",
-        fill: "#ffffff",
-        stroke: "#000000",
-        strokeThickness: 5
+        fill: "#e5d3bd",
+        stroke: "#171717",
+        strokeThickness: 5,
+        shadowColor: "#171717",
+        shadowOffsetX: 2,
+        shadowOffsetY: 2
     });
 
     //  Our controls.
@@ -156,6 +165,12 @@ function create() {
     music.play();
 
     upSound = game.add.audio('upSound');
+}
+
+function createTree() {
+    const newTreePositionX = trees.length ? 800 : 0;
+    let tree = game.add.sprite(newTreePositionX, 230, "bgTrees");
+    trees.add(tree);
 }
 
 function getRandom(minimum, maximum) {
@@ -178,6 +193,33 @@ function createPillar() {
     }
 
     pillars.add(pillar);
+}
+
+function loopTrees() {
+    addNewTree();
+    moveAllTrees();
+    killUnusedTrees();
+}
+
+function addNewTree() {
+    const lastTreePosition = trees.getAt(trees.length - 1).x;
+    if (lastTreePosition < 0) {
+        createTree();
+    }
+}
+
+function killUnusedTrees() {
+    trees.forEachAlive(tree => {
+        if (tree.x < -800) {
+            tree.kill();
+        }
+    });
+}
+
+function moveAllTrees() {
+    trees.forEach(tree => {
+        tree.x -= 1;
+    });
 }
 
 function removeUnusedPillars() {
@@ -211,11 +253,9 @@ function update() {
     movePillars();
     removeUnusedPillars();
     addNewPillars();
+    loopTrees(trees);
 
     scoreText.text = 'Score: ' + parseInt(pillars.countDead());
-
-    //  Reset the players velocity (movement)
-    player.body.velocity.x = 0;
 
     updatePlayerPosition();
 
@@ -258,9 +298,7 @@ function increaseTargetAngle() {
 
 function adjustPlayerAngle() {
     if (player.angle === targetAngle) return;
-
-    const angleStep = (targetAngle - player.angle) / 5;
-    player.angle += angleStep;
+    player.angle += (targetAngle - player.angle) / 5;
 }
 
 function playJumpSound() {
@@ -271,20 +309,17 @@ function playJumpSound() {
 
 function killIfOutsideBounds() {
     if (player.body.y > 550 || player.body.y <= 0) {
-        console.log("OUT!");
         endGame();
     }
 }
 
 function endGame() {
-    console.log("Collision!");
     player.kill();
+    scoreText.text = 'Result: ' + score;
     game.add.tween(scoreText).to({
         y: 245,
         x: 300
     }, 240, Phaser.Easing.Bounce.Out, true);
-
-    scoreText.text = 'Result: ' + score;
 }
 
 /***/ })
